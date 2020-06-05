@@ -21,7 +21,7 @@ var app = new Vue({
 
         nbQuestions: 1, // nb de questions à afficher dans chaque partie
         data: [], // le pointeur vers l'objet courant contenant les questions, 
-        themes: [], // le tableau qui contient les thèmes
+        themes: [], //le tableau qui contient les thèmes
         t: {"nom":"","info":"","data":[]}, // le thème choisi
         c: "loc", // contexte actuel d'affichage de stats, peut aussi valoir "theme"
 
@@ -33,7 +33,7 @@ var app = new Vue({
         demarrage: function(){
 	
             for(var c in stats) { // initialisation
-               // reinitialiser(stats[c]);
+                // reinitialiser(stats[c]);
             }
             // --- FONT-AWESOME
               $("head").append($("<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css' type='text/css' media='screen' />"));
@@ -44,39 +44,44 @@ var app = new Vue({
             $('#secret').append('<img src="compteur.php" width="2" height="2">');
         },
         choisirTheme: function(nom){ // lorsqu'on clique sur un thème dans le menu
-            nbQuestions=1; // si ça a changé à la fin du thème précédent
-            //if(themes[nom]==undefined){// le thème n'est pas encore chargé
-                etat="chargement";
+            this.nbQuestions=1; // si ça a changé à la fin du thème précédent
+            if(this.themes[0]==undefined){// le thème n'est pas encore chargé
+                this.etat="chargement";
               //  actualiserAffichage(); // afficher l'écran de chargement
                 $.get('data/' + nom + '.json', function (d) {
                     // création et affectation d'un objet 'theme' vide:
-                    themes[nom]= {"nom":nom, "info":"", "data":{}};
+                    var themeobj = new Object();
+                    themeobj.nom = nom;
+                    themeobj.info = "";
+                    themeobj.data = {};
+                    this.themes = [themeobj];
                     if($.type(d[0]) === "string")
-                        themes[nom].info=d.splice(0,1);
-                    themes[nom].data=d;//remplissage avec les données:
-                    demarrerTheme(nom);
+                        this.themes[0].info=d.splice(0,1);
+                    this.themes[0].data=d;//remplissage avec les données:
+                    app.demarrerTheme(nom, this.themes[0]);
                 },"json"); //getJSON ne marche pas, pb de callback  ?... 
                 
-            //} else {// le thème est déjà chargé
-             //   demarrerTheme(nom);
+            } else {// le thème est déjà chargé
+               app.demarrerTheme(nom, this.themes[0]);
            // }
-        },
-        demarrerTheme: function(nom){
-            themechoix = nom;
-            t = JSON.parse(JSON.stringify(themes[nom])); //duplication du thème
-            data=t.data; //data contient les données
-            datacop = data;
-            nbRepMax = 0;
-            for (let index = 0; index < data.length; index++) {
-                for (let k = 0; k < data[index].answers.length; k++) {
-                    nbRepMax++
+        }
+    },
+        demarrerTheme: function(nom, themes){
+            this.themechoix = nom;
+            // t = JSON.parse(JSON.stringify(this.themes[nom])); //duplication du thème
+            // data=t.data; //data contient les données
+            this.datacop = themes.data;
+            this.nbRepMax = 0;
+            for (let index = 0; index < themes.data.length; index++) {
+                for (let k = 0; k < themes.data[index].answers.length; k++) {
+                    this.nbRepMax++
                 }
             }
-            console.log("Le thème "+nom+" contient "+data.length+" questions");
-            liste=[]; // nettoyer la liste d'un éventuel thème précédent
+            console.log("Le thème "+nom+" contient "+themes.data.length+" questions");
+            this.liste=[]; // nettoyer la liste d'un éventuel thème précédent
            // reinitialiser(stats['theme']);
-            if(t.info!=""){
-                etat="info";
+            if(themes.info!=""){
+                this.etat="info";
                // actualiserAffichage();
                // actualiserMathJax(); // au cas où il y a des maths dans un exemple ou dans les consignes
             }else{
