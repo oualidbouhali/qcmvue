@@ -26,14 +26,15 @@ var app = new Vue({
         c: "loc", // contexte actuel d'affichage de stats, peut aussi valoir "theme"
 
         liste: [], // longueur nbQuestions, la liste des numéros des questions posées à chaque partie
-        resultatsLoc: [] // longueur idem, valeurs 1, 0 ou -1 suivant le résultat 
-    
+        resultatsLoc: [], // longueur idem, valeurs 1, 0 ou -1 suivant le résultat 
+        acc: true,
+        copthemes: []
     },
     methods:{
         demarrage: function(){
 	
             for(var c in stats) { // initialisation
-                // reinitialiser(stats[c]);
+                app.reinitialiser(this.stats[c]);
             }
             // --- FONT-AWESOME
               $("head").append($("<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css' type='text/css' media='screen' />"));
@@ -47,7 +48,7 @@ var app = new Vue({
             this.nbQuestions=1; // si ça a changé à la fin du thème précédent
             if(this.themes[0]==undefined){// le thème n'est pas encore chargé
                 this.etat="chargement";
-              //  actualiserAffichage(); // afficher l'écran de chargement
+                app.actualiserAffichage(); // afficher l'écran de chargement
                 $.get('data/' + nom + '.json', function (d) {
                     // création et affectation d'un objet 'theme' vide:
                     var themeobj = new Object();
@@ -63,8 +64,7 @@ var app = new Vue({
                 
             } else {// le thème est déjà chargé
                app.demarrerTheme(nom, this.themes[0]);
-           // }
-        }
+            }
     },
         demarrerTheme: function(nom, themes){
             this.themechoix = nom;
@@ -79,15 +79,157 @@ var app = new Vue({
             }
             console.log("Le thème "+nom+" contient "+themes.data.length+" questions");
             this.liste=[]; // nettoyer la liste d'un éventuel thème précédent
-           // reinitialiser(stats['theme']);
+            app.reinitialiser(this.stats['theme']);
             if(themes.info!=""){
                 this.etat="info";
-               // actualiserAffichage();
-               // actualiserMathJax(); // au cas où il y a des maths dans un exemple ou dans les consignes
+                app.actualiserAffichage();
+                app.actualiserMathJax(); // au cas où il y a des maths dans un exemple ou dans les consignes
             }else{
-               // nouvellePartie();
+                app.nouvellePartie(themes);
+            }
+        },
+        nouvellePartie: function(themes){
+            this.copthemes = themes;
+            $( ".card" ).remove("");	
+                
+            c="loc";
+            this.liste=app.sousListe(this.nbQuestions,themes.data.length); // choisir les questions de cette partie dans le thème
+            console.log('il reste '+themes.data.length+'questions. Choix : '+this.liste);
+            
+            $('#vf tr').each(function(){ if($(this).attr('id')!='tr-modele') $(this).remove();}); // vide tout sauf le modèle
+            
+            var quest=$('#tr-modele').insertAfter('#tr-modele').toggle(true);
+            quest.find('.question').html(themes.data[this.liste[0]].question); // lier du latex ne passe pas bien avec l'eval
+            if(themes.data[this.liste[0]].comment != undefined){
+                quest.find('.commentaire').html(themes.data[this.liste[0]].comment);
+            } else{
+                quest.find('.affichageCommentaire').remove();
+            }
+            quest.find('input').attr('name','q'+0);
+            quest.find("*[id]").andSelf().each(function() { $(this).attr("id", $(this).attr("id") + 0); });
+                
+        
+            this.etat="jeu";
+            var rep ='';
+            var textrep = '';
+            for (let index = 0; index < themes.data[this.liste[0]].answers.length; index++) {
+                textrep = ' ' + themes.data[this.liste[0]].answers[index].value
+                //var info = (typeof data[liste[0]].type == 'undefined' ? 'checkbox' : 'radio');
+                rep = rep + '<div class="card card-'+index+'" style="min-width: 100%;"><label><input class="secondary-content" style="opacity:100" type="checkbox" id="rep'+ index +'" onclick="app.test('+index+')"><div class="card-body" id="' + index + '" ><text style="color:black;">' + textrep + '</text></div></label></div>' ;
+            }
+            $( ".card-flex" ).append(rep);
+            
+            app.actualiserAffichage();
+            app.actualiserMathJax();
+        },
+        sousListe: function(a,b){
+            // retourne un tableau de longueur a
+            //contenant des nombres entre 0 et b-1 différents
+            // (ordonnés aléatoirement)
+            var r=[]; //tableau à retourner
+            var tab=[]; //tableau contenant les nombres de 0 à b dans l'ordre.
+            for(var i=0;i<b;i++){
+                tab[i]=i;
+            }
+            while(r.length<a){
+                r.push(tab.splice(Math.floor(Math.random()*tab.length),1)[0]);
+            }
+            return r;
+        },
+        actualiserAffichage: function(){
+            this.acc = false;
+            app.actualiserStats(); //d'abord, et ensuite, l'affichage:
+            $(".sync").each(function(){
+                if(typeof($(this)[$(this).data('action')])=='function'){
+                  //  $(this)[$(this).data('action')](eval($(this).data('param')));
+                }// l'eval est un peu moche mais bon
+            });
+        },
+        actualiserMathJax: function(){
+            if(typeof(MathJax)!= 'undefined') {// si MathJax est chargé, on relance le rendu
+                MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+            } else { // sinon, on le recharge et on relance le rendu en callback
+                $.getScript('https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML', function() {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                });
+            }
+        },
+        actualiserStats: function(){
+
+        },
+        test: function(index){
+            if( $('#rep'+index).is(':checked') ){
+                $('.card-'+index).addClass("teal lighten-5");
+                $('.card-'+index).addClass("z-depth-4");
+            }else{
+                $('.card-'+index).removeClass("teal lighten-5");
+                $('.card-'+index).removeClass("z-depth-4");
+            }
+        },
+        reinitialiser: function(pp){
+            pp.debut=new Date();
+            pp.repJustes=0;
+            pp.repFausses=0;
+            pp.repNeutres=0;
+            pp.rep=0;
+            pp.note=0;
+            pp.points=0;
+            pp.temps=0;
+            pp.efficacite=0;
+            nbRepVrai = 0;
+            nbRepFausses = 0;
+            moyenne = 0;
+            tabRep = [];
+    
+    },
+    redemarrerTheme: function(){
+        app.demarrerTheme(themechoix);
+    },
+    calculresultat: function(){
+        this.moyenne = ((this.nbRepVrai - this.nbRepFausses) / this.nbRepMax) * 20; 
+        this.moyenne = Math.round(this.moyenne);
+        if (this.moyenne < 0) {
+            this.moyenne = 0;
+        }
+    },
+    resultats: function(){
+        console.log(this.copthemes);
+        for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
+            if( $('#rep'+index).is(':checked') ){
+                this.tabRep.push('#rep'+index)
             }
         }
+        for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
+            if (this.copthemes.data[this.liste[0]].answers[index].correct){
+                if ($('#rep'+index).is(':checked')){
+                    this.nbRepVrai++;
+                }else{
+                    this.nbRepFausses++;
+                }
+            }else{
+                if ($('#rep'+index).is(':checked')) {
+                    this.nbRepFausses++;
+                }else{
+                    this.nbRepVrai++;
+                }
+            }
+        }
+        app.calculresultat();
+        // CODER L'Affichage du résultat
+    
+    
+        this.copthemes.data.splice(this.liste[0], 1);
+        this.etat="resultats";
+        this.resultatsLoc=[];
+    
+        //app.actualiserStats();
+        //app.actualiserBonus();
+        if (this.copthemes.data.length == 0){
+            app.actualiserAffichage();
+        }else{
+            app.nouvellePartie(this.copthemes);
+        }
+    }
         
         
     }
