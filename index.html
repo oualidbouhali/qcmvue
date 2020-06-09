@@ -4,7 +4,6 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>QCM</title>
-
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -15,8 +14,7 @@
             <nav class="navbar navbar-inverse navbar-fixed-top" style="margin-bottom:0">
                 <div class="navbar-header">
                     <div class="btn-group"> <!-- bouton thèmes -->
-                        <button type="button" class="btn btn-default navbar-btn " data-toggle="dropdown" aria-expanded="false">Thèmes <span class="caret"></span>
-                        </button>
+                        <button type="button" class="btn btn-default navbar-btn " data-toggle="dropdown" aria-expanded="false">Thèmes <span class="caret"></span></button>
                         <ul class="dropdown-menu dropdown-menu-right" role="menu">
                             <li><a href="#"  v-on:click="choisirTheme('holomorphie')">Holomorphie</a></li>
                             <li><a href="#"  v-on:click="choisirTheme('homotopie3')">Homotopie 3</a></li>
@@ -27,10 +25,11 @@
             <!-- - - - - - Q U E S T I O N S - - - - - -->
             <div  id="vf" class="sync col-xs-12 col-sm-8" data-action="toggle" data-param="(etat=='jeu'||etat=='correction')" v-show="acc == false">
                 <table class="table table-striped">
-                <!-- cette ligne du tableau sera dupliquée et remplie dynamiquement-->
-                    <tr id="tr-modele" style="background-color: white;"><td>
-                        <p class="question" style="font-size: large;"> <!-- Enoncé --> </p>
-                        <div class="card-flex"> </div>  
+                    <!-- cette ligne du tableau sera dupliquée et remplie dynamiquement-->
+                    <tr id="tr-modele" style="background-color: white;">
+                        <td>
+                            <p class="question" style="font-size: large;"> <!-- Enoncé --> </p>
+                            <div class="card-flex"></div>  
                             <div class="btn-group" data-toggle="buttons">
                                 <!-- <label class="btn btn-default"><input type="radio" name="q" id="qV" autocomplete="off"><span>Vrai</span></label>
                                 <label class="btn btn-default"><input type="radio" name="q" id="qF" autocomplete="off"><span>Faux</span></label>
@@ -40,7 +39,8 @@
                                 <i class="fa fa-comment-o"></i>
                                 <span class="commentaire"><!-- éventuel commentaire --></span>
                             </p><!-- end if(etat=='correction') -->
-                    </td></tr>
+                        </td>
+                    </tr>
                 </table>
                 <div class="container">
                     <div class="col-xs-11 col-sm-8">
@@ -93,6 +93,5 @@
                 tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
             });
         </script>
-        
     </body>
     </html>
