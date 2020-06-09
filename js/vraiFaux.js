@@ -48,7 +48,7 @@ var app = new Vue({
             this.nbQuestions=1; // si ça a changé à la fin du thème précédent
             if(this.themes[0]==undefined){// le thème n'est pas encore chargé
                 this.etat="chargement";
-                app.actualiserAffichage(); // afficher l'écran de chargement
+                app.actualiserAffichage(false); // afficher l'écran de chargement
                 $.get('data/' + nom + '.json', function (d) {
                     // création et affectation d'un objet 'theme' vide:
                     var themeobj = new Object();
@@ -82,7 +82,7 @@ var app = new Vue({
             app.reinitialiser(this.stats['theme']);
             if(themes.info!=""){
                 this.etat="info";
-                app.actualiserAffichage();
+                app.actualiserAffichage(false);
                 app.actualiserMathJax(); // au cas où il y a des maths dans un exemple ou dans les consignes
             }else{
                 app.nouvellePartie(themes);
@@ -90,16 +90,22 @@ var app = new Vue({
         },
         nouvellePartie: function(themes){
             this.copthemes = themes;
-            $( ".card" ).remove("");	
+            $(".card").remove();
+            $(".question").empty();
+            
                 
-            c="loc";
+            //c="loc";
             this.liste=app.sousListe(this.nbQuestions,themes.data.length); // choisir les questions de cette partie dans le thème
             console.log('il reste '+themes.data.length+'questions. Choix : '+this.liste);
             
-            $('#vf tr').each(function(){ if($(this).attr('id')!='tr-modele') $(this).remove();}); // vide tout sauf le modèle
+            //$('#vf tr').each(function(){ if($(this).attr('id')!='tr-modele') $(this).remove();}); // vide tout sauf le modèle
             
             var quest=$('#tr-modele').insertAfter('#tr-modele').toggle(true);
-            quest.find('.question').html(themes.data[this.liste[0]].question); // lier du latex ne passe pas bien avec l'eval
+           
+            console.log(themes.data[this.liste[0]].question);
+            //quest.find('.question').html(themes.data[this.liste[0]].question); // lier du latex ne passe pas bien avec l'eval
+            //quest.find('.question').append(themes.data[this.liste[0]].question);
+            $('.question').append(themes.data[this.liste[0]].question);
             if(themes.data[this.liste[0]].comment != undefined){
                 quest.find('.commentaire').html(themes.data[this.liste[0]].comment);
             } else{
@@ -119,7 +125,7 @@ var app = new Vue({
             }
             $( ".card-flex" ).append(rep);
             
-            app.actualiserAffichage();
+            app.actualiserAffichage(false);
             app.actualiserMathJax();
         },
         sousListe: function(a,b){
@@ -136,14 +142,9 @@ var app = new Vue({
             }
             return r;
         },
-        actualiserAffichage: function(){
-            this.acc = false;
-            app.actualiserStats(); //d'abord, et ensuite, l'affichage:
-            $(".sync").each(function(){
-                if(typeof($(this)[$(this).data('action')])=='function'){
-                  //  $(this)[$(this).data('action')](eval($(this).data('param')));
-                }// l'eval est un peu moche mais bon
-            });
+        actualiserAffichage: function(bool){
+            this.acc = bool;
+
         },
         actualiserMathJax: function(){
             if(typeof(MathJax)!= 'undefined') {// si MathJax est chargé, on relance le rendu
@@ -193,6 +194,7 @@ var app = new Vue({
         }
     },
     resultats: function(){
+        
         console.log(this.copthemes);
         for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
             if( $('#rep'+index).is(':checked') ){
@@ -214,8 +216,8 @@ var app = new Vue({
                 }
             }
         }
-        app.calculresultat();
-        // CODER L'Affichage du résultat
+        //app.calculresultat();
+
     
     
         this.copthemes.data.splice(this.liste[0], 1);
@@ -224,8 +226,9 @@ var app = new Vue({
     
         //app.actualiserStats();
         //app.actualiserBonus();
+        console.log(this.copthemes.data.length);
         if (this.copthemes.data.length == 0){
-            app.actualiserAffichage();
+            app.actualiserAffichage(true);
         }else{
             app.nouvellePartie(this.copthemes);
         }
