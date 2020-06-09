@@ -28,7 +28,9 @@ var app = new Vue({
         liste: [], // longueur nbQuestions, la liste des numéros des questions posées à chaque partie
         resultatsLoc: [], // longueur idem, valeurs 1, 0 ou -1 suivant le résultat 
         acc: true,
-        copthemes: []
+        copthemes: [],
+        resultat: false,
+        jeu : false
     },
     methods:{
         demarrage: function(){
@@ -45,10 +47,14 @@ var app = new Vue({
             $('#secret').append('<img src="compteur.php" width="2" height="2">');
         },
         choisirTheme: function(nom){ // lorsqu'on clique sur un thème dans le menu
+            this.moyenne=0;
+            this.nbRepVrai=0;
+            this.nbRepFausses=0;
+            this.nbRepMax=0;
             this.nbQuestions=1; // si ça a changé à la fin du thème précédent
             if(this.themes[0]==undefined){// le thème n'est pas encore chargé
                 this.etat="chargement";
-                app.actualiserAffichage(false); // afficher l'écran de chargement
+                app.actualiserAffichage(false, false, false); // afficher l'écran de chargement
                 $.get('data/' + nom + '.json', function (d) {
                     // création et affectation d'un objet 'theme' vide:
                     var themeobj = new Object();
@@ -82,7 +88,7 @@ var app = new Vue({
             app.reinitialiser(this.stats['theme']);
             if(themes.info!=""){
                 this.etat="info";
-                app.actualiserAffichage(false);
+                app.actualiserAffichage(false, false, false);
                 app.actualiserMathJax(); // au cas où il y a des maths dans un exemple ou dans les consignes
             }else{
                 app.nouvellePartie(themes);
@@ -102,7 +108,6 @@ var app = new Vue({
             
             var quest=$('#tr-modele').insertAfter('#tr-modele').toggle(true);
            
-            console.log(themes.data[this.liste[0]].question);
             //quest.find('.question').html(themes.data[this.liste[0]].question); // lier du latex ne passe pas bien avec l'eval
             //quest.find('.question').append(themes.data[this.liste[0]].question);
             $('.question').append(themes.data[this.liste[0]].question);
@@ -125,7 +130,7 @@ var app = new Vue({
             }
             $( ".card-flex" ).append(rep);
             
-            app.actualiserAffichage(false);
+            app.actualiserAffichage(false, true, false);
             app.actualiserMathJax();
         },
         sousListe: function(a,b){
@@ -142,9 +147,10 @@ var app = new Vue({
             }
             return r;
         },
-        actualiserAffichage: function(bool){
-            this.acc = bool;
-
+        actualiserAffichage: function(acc, jeu, resultat){
+            this.acc = acc;
+            this.jeu = jeu;
+            this.resultat = resultat;
         },
         actualiserMathJax: function(){
             if(typeof(MathJax)!= 'undefined') {// si MathJax est chargé, on relance le rendu
@@ -184,7 +190,7 @@ var app = new Vue({
     
     },
     redemarrerTheme: function(){
-        app.demarrerTheme(themechoix);
+        app.choisirTheme(this.themechoix);
     },
     calculresultat: function(){
         this.moyenne = ((this.nbRepVrai - this.nbRepFausses) / this.nbRepMax) * 20; 
@@ -195,7 +201,6 @@ var app = new Vue({
     },
     resultats: function(){
         
-        console.log(this.copthemes);
         for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
             if( $('#rep'+index).is(':checked') ){
                 this.tabRep.push('#rep'+index)
@@ -216,7 +221,9 @@ var app = new Vue({
                 }
             }
         }
-        //app.calculresultat();
+        console.log(this.nbRepVrai, this.nbRepFausses);
+        console.log(this.moyenne);
+        app.calculresultat();
 
     
     
@@ -226,9 +233,8 @@ var app = new Vue({
     
         //app.actualiserStats();
         //app.actualiserBonus();
-        console.log(this.copthemes.data.length);
         if (this.copthemes.data.length == 0){
-            app.actualiserAffichage(true);
+            app.actualiserAffichage(false, false, true);
         }else{
             app.nouvellePartie(this.copthemes);
         }
