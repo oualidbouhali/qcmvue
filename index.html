@@ -109,10 +109,10 @@
                         </h1>
                     <p>
                         <i class="fa fa-clock-o"></i> Temps écoulé : 
-                        <span class="sync" data-action="toggle" data-param="stats[c].temps>=60">
-                        <span class="sync" data-action="html"  data-param="Math.floor(stats[c].temps/60)">0</span> m 
+                        <span class="sync" data-action="toggle" v-show="temps>=60">
+                        <span class="sync" data-action="html"  data-param="temps/60)">{{minute}}</span> m 
                         </span>
-                        <span class="sync" data-action="html"  data-param="stats[c].temps%60">0</span> s
+                        <span class="sync" data-action="html"  data-param="temps%60">{{temps%60}}</span> s
                     </p>
                     <table class="table table-condensed table-striped">
                         <thead>
@@ -129,6 +129,14 @@
                         <tr>
                             <td>Réponses fausses</td>
                             <td>- <span class="sync" data-action="html"  data-param="nbRepFausses">{{nbRepFausses}}</span></td>
+                        </tr>
+                        <tr>
+                            <td>Bonus temps</td>
+                            <td>+ <span class="sync" data-action="html"  data-param="bonusTemps">{{bonusTemps}}</span></td>
+                        </tr>
+                        <tr>
+                            <td>Bonne réponse consécutive</td>
+                            <td>+ <span class="sync" data-action="html"  data-param="BonusConsecutif">{{BonusConsecutif}}</span></td>
                         </tr>
                         </tbody>
                         <tbody class="table table-condensed sync" data-action="html" data-param="bonus.html">
