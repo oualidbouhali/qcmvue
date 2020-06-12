@@ -9,6 +9,12 @@ var app = new Vue({
         moyenne: 0,
         tabRep: [],
         themechoix: "",
+        debut:{},
+        fin:{},
+        temps:0,
+        minute:0,
+        bonusTemps:0,
+        BonusConsecutif:0,
         // Variable d'état de l'application.
         // Peut prendre les valeurs : 'accueil', 'chargement', 'info', 'jeu', 'resultats', 'correction', 'fin'.
         // Elle détermine ce qui doit être affiché ou pas (voir le template)
@@ -86,6 +92,7 @@ var app = new Vue({
             console.log("Le thème "+nom+" contient "+themes.data.length+" questions");
             this.liste=[]; // nettoyer la liste d'un éventuel thème précédent
             app.reinitialiser(this.stats['theme']);
+            this.debut=new Date();
             if(themes.info!=""){
                 this.etat="info";
                 app.actualiserAffichage(false, false, false);
@@ -102,7 +109,7 @@ var app = new Vue({
                 
             //c="loc";
             this.liste=app.sousListe(this.nbQuestions,themes.data.length); // choisir les questions de cette partie dans le thème
-            console.log('il reste '+themes.data.length+'questions. Choix : '+this.liste);
+            console.log('il reste '+themes.data.length+'questions.');
             
             //$('#vf tr').each(function(){ if($(this).attr('id')!='tr-modele') $(this).remove();}); // vide tout sauf le modèle
             
@@ -193,11 +200,15 @@ var app = new Vue({
         app.choisirTheme(this.themechoix);
     },
     calculresultat: function(){
-        this.moyenne = ((this.nbRepVrai - this.nbRepFausses) / this.nbRepMax) * 20; 
+        this.moyenne = (((this.nbRepVrai + this.bonusTemps + this.BonusConsecutif) - this.nbRepFausses) / this.nbRepMax) * 20; 
         this.moyenne = Math.round(this.moyenne);
         if (this.moyenne < 0) {
             this.moyenne = 0;
         }
+        if(this.moyenne > 20){
+            this.moyenne = 20;
+        }
+        
     },
     resultats: function(){
         
@@ -206,26 +217,29 @@ var app = new Vue({
                 this.tabRep.push('#rep'+index)
             }
         }
+        var bonneRepConsecutive = true;
         for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
             if (this.copthemes.data[this.liste[0]].answers[index].correct){
                 if ($('#rep'+index).is(':checked')){
                     this.nbRepVrai++;
                 }else{
+                    bonneRepConsecutive = false;
                     this.nbRepFausses++;
                 }
             }else{
                 if ($('#rep'+index).is(':checked')) {
+                    bonneRepConsecutive = false;
                     this.nbRepFausses++;
                 }else{
                     this.nbRepVrai++;
                 }
             }
         }
-        console.log(this.nbRepVrai, this.nbRepFausses);
-        console.log(this.moyenne);
-        app.calculresultat();
+        
 
-    
+        if(bonneRepConsecutive){
+            this.BonusConsecutif++;
+        }
     
         this.copthemes.data.splice(this.liste[0], 1);
         this.etat="resultats";
@@ -234,6 +248,15 @@ var app = new Vue({
         //app.actualiserStats();
         //app.actualiserBonus();
         if (this.copthemes.data.length == 0){
+            this.fin = new Date();
+            this.temps = Math.floor((this.fin-this.debut)/1000);
+            if(this.temps >= 60){
+                this.minute = Math.floor(this.temps/60); 
+            }
+            if(this.temps<60){
+                this.bonusTemps = 1;
+            }
+            app.calculresultat();
             app.actualiserAffichage(false, false, true);
         }else{
             app.nouvellePartie(this.copthemes);
