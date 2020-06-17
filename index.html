@@ -13,6 +13,15 @@
     <body>
         <div id="app" onload="demarrage()">
             <nav class="navbar navbar-inverse navbar-fixed-top" style="margin-bottom:0">
+                <a class="navbar-brand" v-show="jeu == true">
+                    <div class="chronometre">
+                        <div class="tim">
+                            <span class="test"></span>
+                            <span class="test"></span>
+                      
+                        </div>
+                      </div>
+                </a>
                 <div class="navbar-header">
                     <div class="btn-group"> <!-- bouton thèmes -->
                         <button type="button" class="btn btn-default navbar-btn " data-toggle="dropdown" aria-expanded="false">Thèmes <span class="caret"></span></button>
@@ -133,10 +142,6 @@
                         <tr>
                             <td>Bonus temps</td>
                             <td>+ <span class="sync" data-action="html"  data-param="bonusTemps">{{bonusTemps}}</span></td>
-                        </tr>
-                        <tr>
-                            <td>Bonne réponse consécutive</td>
-                            <td>+ <span class="sync" data-action="html"  data-param="BonusConsecutif">{{BonusConsecutif}}</span></td>
                         </tr>
                         </tbody>
                         <tbody class="table table-condensed sync" data-action="html" data-param="bonus.html">
