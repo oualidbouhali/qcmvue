@@ -14,7 +14,6 @@ var app = new Vue({
         temps:0,
         minute:0,
         bonusTemps:0,
-        BonusConsecutif:0,
         // Variable d'état de l'application.
         // Peut prendre les valeurs : 'accueil', 'chargement', 'info', 'jeu', 'resultats', 'correction', 'fin'.
         // Elle détermine ce qui doit être affiché ou pas (voir le template)
@@ -36,7 +35,12 @@ var app = new Vue({
         acc: true,
         copthemes: [],
         resultat: false,
-        jeu : false
+        jeu : false,
+        tempstot : 0,
+        sp : document.getElementsByClassName("test"),
+        s : 0,
+        mn : 0,
+        interval : 0
     },
     methods:{
         demarrage: function(){
@@ -105,7 +109,6 @@ var app = new Vue({
             this.copthemes = themes;
             $(".card").remove();
             $(".question").empty();
-            
                 
             //c="loc";
             this.liste=app.sousListe(this.nbQuestions,themes.data.length); // choisir les questions de cette partie dans le thème
@@ -113,8 +116,9 @@ var app = new Vue({
             
             //$('#vf tr').each(function(){ if($(this).attr('id')!='tr-modele') $(this).remove();}); // vide tout sauf le modèle
             
+            app.tempsQuest(this.copthemes);
             var quest=$('#tr-modele').insertAfter('#tr-modele').toggle(true);
-           
+            app.startInterval();
             //quest.find('.question').html(themes.data[this.liste[0]].question); // lier du latex ne passe pas bien avec l'eval
             //quest.find('.question').append(themes.data[this.liste[0]].question);
             $('.question').append(themes.data[this.liste[0]].question);
@@ -200,7 +204,7 @@ var app = new Vue({
         app.choisirTheme(this.themechoix);
     },
     calculresultat: function(){
-        this.moyenne = (((this.nbRepVrai + this.bonusTemps + this.BonusConsecutif) - this.nbRepFausses) / this.nbRepMax) * 20; 
+        this.moyenne = (((this.nbRepVrai + this.bonusTemps) - this.nbRepFausses) / this.nbRepMax) * 20; 
         this.moyenne = Math.round(this.moyenne);
         if (this.moyenne < 0) {
             this.moyenne = 0;
@@ -211,7 +215,7 @@ var app = new Vue({
         
     },
     resultats: function(){
-        
+        clearInterval(this.interval);
         for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
             if( $('#rep'+index).is(':checked') ){
                 this.tabRep.push('#rep'+index)
@@ -235,11 +239,6 @@ var app = new Vue({
                 }
             }
         }
-        
-
-        if(bonneRepConsecutive){
-            this.BonusConsecutif++;
-        }
     
         this.copthemes.data.splice(this.liste[0], 1);
         this.etat="resultats";
@@ -247,22 +246,47 @@ var app = new Vue({
     
         //app.actualiserStats();
         //app.actualiserBonus();
+        
+        if (this.tempstot > 0 && bonneRepConsecutive) {
+            this.bonusTemps += 1;
+        }
         if (this.copthemes.data.length == 0){
             this.fin = new Date();
             this.temps = Math.floor((this.fin-this.debut)/1000);
             if(this.temps >= 60){
                 this.minute = Math.floor(this.temps/60); 
             }
-            if(this.temps<60){
-                this.bonusTemps = 1;
-            }
             app.calculresultat();
             app.actualiserAffichage(false, false, true);
         }else{
             app.nouvellePartie(this.copthemes);
         }
-    }
-        
-        
-    }
+    },
+    tempsQuest : function(copthemes){
+        this.tempstot = 10;
+        for (let index = 0; index < copthemes.data[this.liste[0]].answers.length; index++) { //Temps pour repondre 
+            this.tempstot = this.tempstot + 5; 
+        }
+    },
+    update_chrono: function(){
+        if (this.tempstot == 0 && this.mn == 0) {
+            this.sp[0].innerHTML = "Délai écoulé pour le bonus temps..";
+            this.sp[1].innerHTML="";
+            clearInterval(this.interval);
+        }else{
+            this.tempstot = this.tempstot - 1;
+            if(this.tempstot==0 && this.mn > 0){
+                this.tempstot=60;
+                this.mn = this.mn - 1;
+            }
+            this.sp[0].innerHTML="Temps restant pour obtenir le bonus temps : "+this.mn+" min";
+            this.sp[1].innerHTML=this.tempstot+" s";
+        }
+    },
+    startInterval: function () {
+        this.interval = setInterval(() => {
+            app.update_chrono()
+       }, 1000);
+    }   
+    }  
 })
