@@ -1,53 +1,49 @@
 var app = new Vue({
     el: "#app",
     data: {
-        etat: 'accueil',
+        // Variable de themes
         datacop: [],
-        nbRepVrai: 0,
-        nbRepFausses: 0,
-        nbRepMax: 0,
-        moyenne: 0,
-        tabRep: [],
         themechoix: "",
+        copthemes: [],
+
+        // Pour le chrono total du QCM
         debut:{},
         fin:{},
         temps:0,
         minute:0,
-        bonusTemps:0,
-        // Variable d'état de l'application.
-        // Peut prendre les valeurs : 'accueil', 'chargement', 'info', 'jeu', 'resultats', 'correction', 'fin'.
-        // Elle détermine ce qui doit être affiché ou pas (voir le template)
+        
+        // pour les résultats
+        nbRepVrai: 0,
+        nbRepFausses: 0,
+        nbRepMax: 0,
+        moyenne: 0,
+       
 
-        stats: {loc: {}, theme: {}, glob : {} }, // différentes contextes de stats
-
-        // pour les bonus:
-        combo: 0, // barre de combo : nb de réponses correctes depuis la dernière faute
-        bonus: {total:0,liste:[],html:""}, // infos sur les bonus
+        
 
         nbQuestions: 1, // nb de questions à afficher dans chaque partie
         data: [], // le pointeur vers l'objet courant contenant les questions, 
         themes: [], //le tableau qui contient les thèmes
-        t: {"nom":"","info":"","data":[]}, // le thème choisi
-        c: "loc", // contexte actuel d'affichage de stats, peut aussi valoir "theme"
+
 
         liste: [], // longueur nbQuestions, la liste des numéros des questions posées à chaque partie
-        resultatsLoc: [], // longueur idem, valeurs 1, 0 ou -1 suivant le résultat 
+
+        // Boolean pour l'affichage de la page
         acc: true,
-        copthemes: [],
         resultat: false,
         jeu : false,
+
+
+        // Variable pour le bonus temps
         tempstot : 0,
-        sp : document.getElementsByClassName("test"),
+        sp : document.getElementsByClassName("ChronoBonusTemps"),
         s : 0,
         mn : 0,
-        interval : 0
+        interval : 0,
+        bonusTemps:0
     },
     methods:{
         demarrage: function(){
-	
-            for(var c in stats) { // initialisation
-                app.reinitialiser(this.stats[c]);
-            }
             // --- FONT-AWESOME
               $("head").append($("<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css' type='text/css' media='screen' />"));
             // --- MATHJAX
@@ -63,7 +59,6 @@ var app = new Vue({
             this.nbRepMax=0;
             this.nbQuestions=1; // si ça a changé à la fin du thème précédent
             if(this.themes[0]==undefined){// le thème n'est pas encore chargé
-                this.etat="chargement";
                 app.actualiserAffichage(false, false, false); // afficher l'écran de chargement
                 $.get('data/' + nom + '.json', function (d) {
                     // création et affectation d'un objet 'theme' vide:
@@ -72,20 +67,18 @@ var app = new Vue({
                     themeobj.info = "";
                     themeobj.data = {};
                     this.themes = [themeobj];
-                    if($.type(d[0]) === "string")
+                    if($.type(d[0]) === "string"){
                         this.themes[0].info=d.splice(0,1);
+                    }
                     this.themes[0].data=d;//remplissage avec les données:
                     app.demarrerTheme(nom, this.themes[0]);
                 },"json"); //getJSON ne marche pas, pb de callback  ?... 
-                
             } else {// le thème est déjà chargé
                app.demarrerTheme(nom, this.themes[0]);
             }
     },
         demarrerTheme: function(nom, themes){
             this.themechoix = nom;
-            // t = JSON.parse(JSON.stringify(this.themes[nom])); //duplication du thème
-            // data=t.data; //data contient les données
             this.datacop = themes.data;
             this.nbRepMax = 0;
             for (let index = 0; index < themes.data.length; index++) {
@@ -95,10 +88,9 @@ var app = new Vue({
             }
             console.log("Le thème "+nom+" contient "+themes.data.length+" questions");
             this.liste=[]; // nettoyer la liste d'un éventuel thème précédent
-            app.reinitialiser(this.stats['theme']);
+            app.reinitialiser();
             this.debut=new Date();
             if(themes.info!=""){
-                this.etat="info";
                 app.actualiserAffichage(false, false, false);
                 app.actualiserMathJax(); // au cas où il y a des maths dans un exemple ou dans les consignes
             }else{
@@ -107,42 +99,34 @@ var app = new Vue({
         },
         nouvellePartie: function(themes){
             this.copthemes = themes;
+            // On enlève les réponses et la question précédente
             $(".card").remove();
             $(".question").empty();
-                
-            //c="loc";
-            this.liste=app.sousListe(this.nbQuestions,themes.data.length); // choisir les questions de cette partie dans le thème
+            // choisir les questions restantes de cette partie dans le thème
+            this.liste=app.sousListe(this.nbQuestions,themes.data.length); 
             console.log('il reste '+themes.data.length+'questions.');
-            
-            //$('#vf tr').each(function(){ if($(this).attr('id')!='tr-modele') $(this).remove();}); // vide tout sauf le modèle
-            
+            // Calcul du temps bonus pour la question
             app.tempsQuest(this.copthemes);
             var quest=$('#tr-modele').insertAfter('#tr-modele').toggle(true);
-            app.startInterval();
-            //quest.find('.question').html(themes.data[this.liste[0]].question); // lier du latex ne passe pas bien avec l'eval
-            //quest.find('.question').append(themes.data[this.liste[0]].question);
+            // Affichage de la question
             $('.question').append(themes.data[this.liste[0]].question);
             if(themes.data[this.liste[0]].comment != undefined){
                 quest.find('.commentaire').html(themes.data[this.liste[0]].comment);
             } else{
                 quest.find('.affichageCommentaire').remove();
             }
-            quest.find('input').attr('name','q'+0);
-            quest.find("*[id]").andSelf().each(function() { $(this).attr("id", $(this).attr("id") + 0); });
-                
-        
-            this.etat="jeu";
+            //quest.find('input').attr('name','q'+0);
+            //quest.find("*[id]").andSelf().each(function() { $(this).attr("id", $(this).attr("id") + 0); });
             var rep ='';
             var textrep = '';
             for (let index = 0; index < themes.data[this.liste[0]].answers.length; index++) {
                 textrep = ' ' + themes.data[this.liste[0]].answers[index].value
-                //var info = (typeof data[liste[0]].type == 'undefined' ? 'checkbox' : 'radio');
-                rep = rep + '<div class="card card-'+index+'" style="min-width: 100%;"><label><input class="secondary-content" style="opacity:100" type="checkbox" id="rep'+ index +'" onclick="app.test('+index+')"><div class="card-body" id="' + index + '" ><text style="color:black;">' + textrep + '</text></div></label></div>' ;
+                rep = rep + '<div class="card card-'+index+'" style="min-width: 100%;"><label><input class="secondary-content" style="opacity:100" type="checkbox" id="rep'+ index +'" onclick="app.select('+index+')"><div class="card-body" id="' + index + '" ><text style="color:black;">' + textrep + '</text></div></label></div>' ;
             }
             $( ".card-flex" ).append(rep);
-            
             app.actualiserAffichage(false, true, false);
             app.actualiserMathJax();
+            app.startInterval();
         },
         sousListe: function(a,b){
             // retourne un tableau de longueur a
@@ -159,6 +143,7 @@ var app = new Vue({
             return r;
         },
         actualiserAffichage: function(acc, jeu, resultat){
+            // Boolean qui permet d'afficher l'écran d'accueil / de jeu / de résultat
             this.acc = acc;
             this.jeu = jeu;
             this.resultat = resultat;
@@ -175,7 +160,7 @@ var app = new Vue({
         actualiserStats: function(){
 
         },
-        test: function(index){
+        select: function(index){
             if( $('#rep'+index).is(':checked') ){
                 $('.card-'+index).addClass("teal lighten-5");
                 $('.card-'+index).addClass("z-depth-4");
@@ -184,109 +169,91 @@ var app = new Vue({
                 $('.card-'+index).removeClass("z-depth-4");
             }
         },
-        reinitialiser: function(pp){
-            pp.debut=new Date();
-            pp.repJustes=0;
-            pp.repFausses=0;
-            pp.repNeutres=0;
-            pp.rep=0;
-            pp.note=0;
-            pp.points=0;
-            pp.temps=0;
-            pp.efficacite=0;
-            nbRepVrai = 0;
-            nbRepFausses = 0;
-            moyenne = 0;
-            tabRep = [];
-    
-    },
-    redemarrerTheme: function(){
-        app.choisirTheme(this.themechoix);
-    },
-    calculresultat: function(){
-        this.moyenne = (((this.nbRepVrai + this.bonusTemps) - this.nbRepFausses) / this.nbRepMax) * 20; 
-        this.moyenne = Math.round(this.moyenne);
-        if (this.moyenne < 0) {
+        reinitialiser: function(){
+            this.nbRepVrai = 0;
+            this.nbRepFausses = 0;
             this.moyenne = 0;
-        }
-        if(this.moyenne > 20){
-            this.moyenne = 20;
-        }
-        
-    },
-    resultats: function(){
-        clearInterval(this.interval);
-        for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
-            if( $('#rep'+index).is(':checked') ){
-                this.tabRep.push('#rep'+index)
+            this.bonusTemps=0;
+        },
+        redemarrerTheme: function(){
+            app.choisirTheme(this.themechoix);
+        },
+        calculresultat: function(){
+            this.moyenne = (((this.nbRepVrai + this.bonusTemps) - this.nbRepFausses) / this.nbRepMax) * 20; 
+            this.moyenne = Math.round(this.moyenne);
+            if (this.moyenne < 0) {
+                this.moyenne = 0;
             }
-        }
-        var bonneRepConsecutive = true;
-        for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
-            if (this.copthemes.data[this.liste[0]].answers[index].correct){
-                if ($('#rep'+index).is(':checked')){
-                    this.nbRepVrai++;
-                }else{
-                    bonneRepConsecutive = false;
-                    this.nbRepFausses++;
-                }
-            }else{
-                if ($('#rep'+index).is(':checked')) {
-                    bonneRepConsecutive = false;
-                    this.nbRepFausses++;
-                }else{
-                    this.nbRepVrai++;
-                }
+            if(this.moyenne > 20){
+                this.moyenne = 20;
             }
-        }
-    
-        this.copthemes.data.splice(this.liste[0], 1);
-        this.etat="resultats";
-        this.resultatsLoc=[];
-    
-        //app.actualiserStats();
-        //app.actualiserBonus();
-        
-        if (this.tempstot > 0 && bonneRepConsecutive) {
-            this.bonusTemps += 1;
-        }
-        if (this.copthemes.data.length == 0){
-            this.fin = new Date();
-            this.temps = Math.floor((this.fin-this.debut)/1000);
-            if(this.temps >= 60){
-                this.minute = Math.floor(this.temps/60); 
-            }
-            app.calculresultat();
-            app.actualiserAffichage(false, false, true);
-        }else{
-            app.nouvellePartie(this.copthemes);
-        }
-    },
-    tempsQuest : function(copthemes){
-        this.tempstot = 10;
-        for (let index = 0; index < copthemes.data[this.liste[0]].answers.length; index++) { //Temps pour repondre 
-            this.tempstot = this.tempstot + 5; 
-        }
-    },
-    update_chrono: function(){
-        if (this.tempstot == 0 && this.mn == 0) {
-            this.sp[0].innerHTML = "Délai écoulé pour le bonus temps..";
-            this.sp[1].innerHTML="";
+        },
+        resultats: function(){
             clearInterval(this.interval);
-        }else{
-            this.tempstot = this.tempstot - 1;
-            if(this.tempstot==0 && this.mn > 0){
-                this.tempstot=60;
-                this.mn = this.mn - 1;
+            // On regarde si les cases cochées sont les bonnes
+            var bonneRepConsecutive = true;
+            for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
+                if (this.copthemes.data[this.liste[0]].answers[index].correct){
+                    if ($('#rep'+index).is(':checked')){
+                        this.nbRepVrai++;
+                    }else{
+                        bonneRepConsecutive = false;
+                        this.nbRepFausses++;
+                    }
+                }else{
+                    if ($('#rep'+index).is(':checked')) {
+                        bonneRepConsecutive = false;
+                        this.nbRepFausses++;
+                    }else{
+                        this.nbRepVrai++;
+                    }
+                }
             }
-            this.sp[0].innerHTML="Temps restant pour obtenir le bonus temps : "+this.mn+" min";
-            this.sp[1].innerHTML=this.tempstot+" s";
-        }
-    },
-    startInterval: function () {
-        this.interval = setInterval(() => {
-            app.update_chrono()
-       }, 1000);
-    }   
+            // On enlève la question déjà posé
+            this.copthemes.data.splice(this.liste[0], 1);
+            //Si le temps n'est pas écoulé et que la réposne est bonne : bonusTemps+1
+            if (this.tempstot > 0 && bonneRepConsecutive) {
+                this.bonusTemps += 1;
+            }
+            // Si il n'y a plus de question on passe au résultat
+            if (this.copthemes.data.length == 0){
+                this.fin = new Date();
+                this.temps = Math.floor((this.fin-this.debut)/1000);
+                if(this.temps >= 60){
+                    this.minute = Math.floor(this.temps/60); 
+                }
+                app.calculresultat();
+                app.actualiserAffichage(false, false, true);
+            // Sinon on lance la prochaine question
+            }else{
+                app.nouvellePartie(this.copthemes);
+            }
+        },
+        tempsQuest : function(copthemes){
+            // Temps pour lire la question
+            this.tempstot = 10;
+            // Temps en plus pour chaque réponse
+            for (let index = 0; index < copthemes.data[this.liste[0]].answers.length; index++) {
+                this.tempstot = this.tempstot + 5; 
+            }
+        },
+        update_chrono: function(){
+            if (this.tempstot == 0 && this.mn == 0) {
+                this.sp[0].innerHTML = "Délai écoulé pour le bonus temps..";
+                this.sp[1].innerHTML="";
+                clearInterval(this.interval);
+            }else{
+                this.tempstot = this.tempstot - 1;
+                if(this.tempstot==0 && this.mn > 0){
+                    this.tempstot=60;
+                    this.mn = this.mn - 1;
+                }
+                this.sp[0].innerHTML="Temps restant pour obtenir le bonus temps pour cette question : "+this.mn+" min";
+                this.sp[1].innerHTML=this.tempstot+" s";
+            }
+        },
+        startInterval: function () {
+            this.interval = setInterval(() => {app.update_chrono()}, 1000);
+        }   
     }  
 })
