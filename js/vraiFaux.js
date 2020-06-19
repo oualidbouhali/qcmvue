@@ -30,7 +30,7 @@ var app = new Vue({
 
         // Boolean pour l'affichage de la page
         acc: true,
-        resultat: false,
+        resultat : false,
         jeu : false,
 
 
@@ -40,7 +40,9 @@ var app = new Vue({
         s : 0,
         mn : 0,
         interval : 0,
-        bonusTemps:0
+        bonusTemps : 0,
+        combovf : 0,
+        isvf : false
     },
     methods:{
         demarrage: function(){
@@ -89,6 +91,11 @@ var app = new Vue({
             console.log("Le thème "+nom+" contient "+themes.data.length+" questions");
             this.liste=[]; // nettoyer la liste d'un éventuel thème précédent
             app.reinitialiser();
+            if (themes.data[0].type == "onlyone"){
+                isvf = true;
+            }else{
+                isvf = false;
+            }
             this.debut=new Date();
             if(themes.info!=""){
                 app.actualiserAffichage(false, false, false);
@@ -179,7 +186,11 @@ var app = new Vue({
             app.choisirTheme(this.themechoix);
         },
         calculresultat: function(){
-            this.moyenne = (((this.nbRepVrai + this.bonusTemps) - this.nbRepFausses) / this.nbRepMax) * 20; 
+            if (isvf){
+                this.moyenne = (((this.nbRepVrai + this.bonusTemps+ this.combovf) - this.nbRepFausses) / this.nbRepMax) * 20;
+            }else{
+                this.moyenne = (((this.nbRepVrai + this.bonusTemps) - this.nbRepFausses) / this.nbRepMax) * 20; 
+            }
             this.moyenne = Math.round(this.moyenne);
             if (this.moyenne < 0) {
                 this.moyenne = 0;
@@ -189,31 +200,15 @@ var app = new Vue({
             }
         },
         resultats: function(){
-            clearInterval(this.interval);
-            // On regarde si les cases cochées sont les bonnes
-            var bonneRepConsecutive = true;
-            for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
-                if (this.copthemes.data[this.liste[0]].answers[index].correct){
-                    if ($('#rep'+index).is(':checked')){
-                        this.nbRepVrai++;
-                    }else{
-                        bonneRepConsecutive = false;
-                        this.nbRepFausses++;
-                    }
+            if(this.copthemes.data.length != 0){
+                clearInterval(this.interval);
+                if (this.copthemes.data[this.liste[0]].type == "onlyone"){
+                    app.bonusvf();
                 }else{
-                    if ($('#rep'+index).is(':checked')) {
-                        bonneRepConsecutive = false;
-                        this.nbRepFausses++;
-                    }else{
-                        this.nbRepVrai++;
-                    }
+                    app.bonusqcm();
                 }
-            }
-            // On enlève la question déjà posé
-            this.copthemes.data.splice(this.liste[0], 1);
-            //Si le temps n'est pas écoulé et que la réposne est bonne : bonusTemps+1
-            if (this.tempstot > 0 && bonneRepConsecutive) {
-                this.bonusTemps += 1;
+                // On enlève la question déjà posé
+                this.copthemes.data.splice(this.liste[0], 1);
             }
             // Si il n'y a plus de question on passe au résultat
             if (this.copthemes.data.length == 0){
@@ -254,6 +249,51 @@ var app = new Vue({
         },
         startInterval: function () {
             this.interval = setInterval(() => {app.update_chrono()}, 1000);
+        },
+        bonusvf : function(){
+            for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
+                if (this.copthemes.data[this.liste[0]].answers[index].correct){
+                    if ($('#rep'+index).is(':checked')){
+                        this.nbRepVrai++;
+                        this.combovf++;
+                    }else{
+                        this.nbRepFausses++;
+                        this.combovf = 0;
+                    }
+                }else{
+                    if ($('#rep'+index).is(':checked')) {
+                        this.nbRepFausses++;
+                        this.combovf = 0;
+                    }
+                }
+            }
+
+
+        },
+        bonusqcm : function(){
+            // On regarde si les cases cochées sont les bonnes
+            var bonneRepConsecutive = true;
+            for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
+                if (this.copthemes.data[this.liste[0]].answers[index].correct){
+                    if ($('#rep'+index).is(':checked')){
+                        this.nbRepVrai++;
+                    }else{
+                        bonneRepConsecutive = false;
+                        this.nbRepFausses++;
+                    }
+                }else{
+                    if ($('#rep'+index).is(':checked')) {
+                        bonneRepConsecutive = false;
+                        this.nbRepFausses++;
+                    }else{
+                        this.nbRepVrai++;
+                    }
+                }
+            }
+             //Si le temps n'est pas écoulé et que la réposne est bonne : bonusTemps+1
+             if (this.tempstot > 0 && bonneRepConsecutive) {
+                this.bonusTemps += 1;
+            }
         }   
     }  
 })
