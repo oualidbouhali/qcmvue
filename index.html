@@ -16,11 +16,11 @@
                 <a class="navbar-brand" v-show="jeu == true">
                     <div class="chronometre">
                         <div class="tim">
-                            <span class="test"></span>
-                            <span class="test"></span>
+                            <span class="ChronoBonusTemps"></span>
+                            <span class="ChronoBonusTemps"></span>
                       
                         </div>
-                      </div>
+                    </div>
                 </a>
                 <div class="navbar-header">
                     <div class="btn-group"> <!-- bouton thèmes -->
@@ -67,13 +67,6 @@
                                     Suite </button>
                                 </p>
                             </span>
-                            <span class="sync"  data-action="toggle" data-param="(data.length==0)"   style="display:none">
-                                <p>Vous avez fini le thème!</p>
-                                <p><button  class="btn btn-primary btn-block btn-lg"  onclick="fin()">
-                                    <i class="fa fa-arrow-right"></i>
-                                    Voir la note sur ce thème</button>
-                                </p>
-                            </span>
                         </div><!-- fin si correction -->
                     </div><!-- / col -->
                 </div><!-- / container -->
@@ -89,12 +82,10 @@
                     <div id="accueil" class="sync" data-action="toggle" data-param="(etat=='accueil')" v-show="acc==true">
                         <h2><i class="fa fa-info"></i> Règles du jeu</h2>
                         <p>Chaque réponse correcte rapporte un point, chaque réponse incorrecte enlève un point. </p>
-                        <p>Le nombre de points et la note globale sont affichés en permanence en haut à gauche de l'écran. En cliquant dessus, on accède à des statistiques détaillées.</p>
+                        <p>Le nombre de points et la note globale sont affichés à la fin des questions.</p>
                         <p>Pour commencer, choisissez un thème dans le menu en haut de l'écran.
-                        Lorsque toutes les questions du thème auront été correctement traitées, un écran récapitulera la note et les statistiques spécifiques pour le thème.</p>
-                        <p>À tout moment, l'application peut octroyer des bonus de points en fonction de plusieurs critères : rapidité, longues séries de réponses sans fautes, etc.
-                        Il est assez facile de faire monter les points en étant prudent, grâce au bonus de réponses correctes consécutives.
-                        Cela dit, c'est la note sur 20 (indépendante des bonus) qui est représentative de votre niveau réel, pas le nombre de points.</p>
+                        Lorsque toutes les questions du thème auront été traitées, un écran récapitulera la note et les statistiques spécifiques pour le thème.</p>
+                        <p>L'application peut octroyer un bonus de points en fonction de la rapidité de la réponse si celle ci est correcte.</p>
                         <p>Les statistiques globales peuvent être réinitialisée en raffraichissant la page. </p>
                     </div>  <!-- - - - - / A C C U E I L - - - - - -->
                             <!-- - - - - R E S U L T A T S  - - - - - -->
