@@ -56,6 +56,7 @@ var app = new Vue({
             $('#secret').append('<img src="compteur.php" width="2" height="2">');
         },
         choisirTheme: function(nom){ // lorsqu'on clique sur un thème dans le menu
+            clearInterval(this.interval);
             this.moyenne=0;
             this.nbRepVrai=0;
             this.nbRepFausses=0;
@@ -93,9 +94,9 @@ var app = new Vue({
             this.liste=[]; // nettoyer la liste d'un éventuel thème précédent
             app.reinitialiser();
             if (themes.data[0].type == "onlyone"){
-                isvf = true;
+                this.isvf = true;
             }else{
-                isvf = false;
+                this.isvf = false;
             }
             this.debut=new Date();
             if(themes.info!=""){
@@ -129,7 +130,7 @@ var app = new Vue({
             var textrep = '';
             for (let index = 0; index < themes.data[this.liste[0]].answers.length; index++) {
                 textrep = ' ' + themes.data[this.liste[0]].answers[index].value
-                rep = rep + '<div class="card card-'+index+'" style="min-width: 100%;"><label><input class="secondary-content" style="opacity:100" type="checkbox" id="rep'+ index +'" onclick="app.select('+index+')"><div class="card-body" id="' + index + '" ><text style="color:black;">' + textrep + '</text></div></label></div>' ;
+                rep = rep + '<div class="card card-'+index+'" style="min-width: 100%;"><label><input class="secondary-content" style="opacity:0" type="checkbox" id="rep'+ index +'" onclick="app.select('+index+')"><div class="card-body" id="' + index + '" ><text style="color:black;">' + textrep + '</text></div></label></div>' ;
             }
             $( ".card-flex" ).append(rep);
             app.actualiserAffichage(false, true, false);
@@ -189,7 +190,7 @@ var app = new Vue({
             app.choisirTheme(this.themechoix);
         },
         calculresultat: function(){
-            if (isvf){
+            if (this.isvf){
                 this.moyenne = (((this.nbRepVrai + this.bonusTemps+ this.combovf) - this.nbRepFausses) / this.nbRepMax) * 20;
             }else{
                 this.moyenne = (((this.nbRepVrai + this.bonusTemps) - this.nbRepFausses) / this.nbRepMax) * 20; 
