@@ -42,6 +42,7 @@ var app = new Vue({
         interval : 0,
         bonusTemps : 0,
         combovf : 0,
+        combomax:0,
         isvf : false
     },
     methods:{
@@ -181,11 +182,14 @@ var app = new Vue({
             this.nbRepFausses = 0;
             this.moyenne = 0;
             this.bonusTemps=0;
+            this.combovf = 0;
+            this.combomax = 0;
         },
         redemarrerTheme: function(){
             app.choisirTheme(this.themechoix);
         },
         calculresultat: function(){
+            console.log(this.nbRepVrai, this.nbRepFausses);
             if (isvf){
                 this.moyenne = (((this.nbRepVrai + this.bonusTemps+ this.combovf) - this.nbRepFausses) / this.nbRepMax) * 20;
             }else{
@@ -251,21 +255,34 @@ var app = new Vue({
             this.interval = setInterval(() => {app.update_chrono()}, 1000);
         },
         bonusvf : function(){
+
+            var bonneRep = true;
             for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
                 if (this.copthemes.data[this.liste[0]].answers[index].correct){
                     if ($('#rep'+index).is(':checked')){
                         this.nbRepVrai++;
                         this.combovf++;
+                        if(this.combovf > this.combomax){
+                            this.combomax = this.combovf;
+                        }
                     }else{
+                        bonneRep = false;
                         this.nbRepFausses++;
                         this.combovf = 0;
                     }
                 }else{
                     if ($('#rep'+index).is(':checked')) {
+                        bonneRep = false;
                         this.nbRepFausses++;
                         this.combovf = 0;
+                    }else{
+                        this.nbRepVrai++;
                     }
                 }
+            }
+            //Si le temps n'est pas écoulé et que la réponse est bonne : bonusTemps+1
+            if (this.tempstot > 0 && bonneRep) {
+                this.bonusTemps += 1;
             }
 
 
@@ -290,7 +307,7 @@ var app = new Vue({
                     }
                 }
             }
-             //Si le temps n'est pas écoulé et que la réposne est bonne : bonusTemps+1
+             //Si le temps n'est pas écoulé et que la réponse est bonne : bonusTemps+1
              if (this.tempstot > 0 && bonneRepConsecutive) {
                 this.bonusTemps += 1;
             }
