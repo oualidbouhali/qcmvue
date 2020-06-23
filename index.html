@@ -16,9 +16,10 @@
                 <a class="navbar-brand" v-show="jeu == true">
                     <div class="chronometre">
                         <div class="tim">
+                            <i class="fa fa-hourglass-half"></i>
                             <span class="ChronoBonusTemps"></span>
                             <span class="ChronoBonusTemps"></span>
-                      
+                            <i class="fa fa-hourglass-half"></i>
                         </div>
                     </div>
                 </a>
@@ -134,12 +135,10 @@
                             <td>Bonus temps</td>
                             <td>+ <span class="sync" data-action="html"  data-param="bonusTemps">{{bonusTemps}}</span></td>
                         </tr>
-                        <div>
-                            <tr>
-                                <td>Bonus combo</td>
-                                <td>+ <span class="sync" data-action="html"  data-param="combovf">{{combovf}}</span></td>
-                            </tr>
-                        </div>
+                        <tr v-show="isvf" >
+                            <td v-show="isvf">Bonus combo</td>
+                            <td v-show="isvf" >+ <span v-show="isvf" class="sync" data-action="html"  data-param="combovf">{{combovf}}</span></td>
+                        </tr>
                         </tbody>
                         <tbody class="table table-condensed sync" data-action="html" data-param="bonus.html">
                         </tbody>
