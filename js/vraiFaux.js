@@ -189,7 +189,6 @@ var app = new Vue({
             app.choisirTheme(this.themechoix);
         },
         calculresultat: function(){
-            console.log(this.nbRepVrai, this.nbRepFausses);
             if (isvf){
                 this.moyenne = (((this.nbRepVrai + this.bonusTemps+ this.combovf) - this.nbRepFausses) / this.nbRepMax) * 20;
             }else{
@@ -255,13 +254,20 @@ var app = new Vue({
             this.interval = setInterval(() => {app.update_chrono()}, 1000);
         },
         bonusvf : function(){
-
+            var nbRepCheck = 0;
+            for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
+                if ($('#rep'+index).is(':checked')){
+                    nbRepCheck++;
+                }
+            }
             var bonneRep = true;
             for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
                 if (this.copthemes.data[this.liste[0]].answers[index].correct){
                     if ($('#rep'+index).is(':checked')){
                         this.nbRepVrai++;
-                        this.combovf++;
+                        if(nbRepCheck == 1){
+                            this.combovf++;
+                        }
                         if(this.combovf > this.combomax){
                             this.combomax = this.combovf;
                         }
