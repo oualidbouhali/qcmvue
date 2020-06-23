@@ -247,7 +247,7 @@ var app = new Vue({
                     this.tempstot=60;
                     this.mn = this.mn - 1;
                 }
-                this.sp[0].innerHTML="Temps restant pour obtenir le bonus temps pour cette question : "+this.mn+" min";
+                this.sp[0].innerHTML="Temps restant pour obtenir le bonus temps à cette question : "+this.mn+" min";
                 this.sp[1].innerHTML=this.tempstot+" s";
             }
         },
