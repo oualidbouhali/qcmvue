@@ -43,9 +43,46 @@ var app = new Vue({
         bonusTemps : 0,
         combovf : 0,
         combomax:0,
-        isvf : false
+        isvf : false,
+
+
+        // Progress bar
+        i:0, // Define a global counter
+        tmr:0, // Define timer
+        seg:0
     },
     methods:{
+        create: function(themes) {
+            this.seg = themes.data.length;
+            var max = 100,
+                val = 0,
+                width = document.body.clientWidth/3,
+                height = 30;
+            $(".progressContainer").empty().height(height + 1).width(width + 1);
+            // Get size for each progressbar
+            var size = max / this.seg;
+            // Get width for each progressbar
+            // -2 for left/right borders of progressbars
+            // -1 for margin-right
+            // = -3px each of their width to fit exact location
+            width = (width / this.seg) - 3;
+            for (i = 0; i < this.seg; i++) {
+                // Create segmented progressbars
+                $(".progressContainer").append(
+                '<div class="progress' + i + '"></div>');
+                // Add their size
+                $(".progress" + i).progressbar({
+                max: size,
+                value: 0
+                }).css({
+                margin: '0 1px 0 0',
+                width: width,
+                height: height,
+                float: 'left',
+                "background-color": "white",
+                });
+            }
+        },
         demarrage: function(){
             // --- FONT-AWESOME
               $("head").append($("<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css' type='text/css' media='screen' />"));
@@ -82,6 +119,7 @@ var app = new Vue({
             }
     },
         demarrerTheme: function(nom, themes){
+            app.create(themes);
             this.themechoix = nom;
             this.datacop = themes.data;
             this.nbRepMax = 0;
@@ -185,6 +223,7 @@ var app = new Vue({
             this.bonusTemps=0;
             this.combovf = 0;
             this.combomax = 0;
+            this.i=0;
         },
         redemarrerTheme: function(){
             app.choisirTheme(this.themechoix);
@@ -204,6 +243,8 @@ var app = new Vue({
             }
         },
         resultats: function(){
+            var repCorrect = 0;
+            var repFausses = 0;
             if(this.copthemes.data.length != 0){
                 clearInterval(this.interval);
                 if (this.copthemes.data[this.liste[0]].type == "onlyone"){
@@ -214,6 +255,7 @@ var app = new Vue({
                 // On enlève la question déjà posé
                 this.copthemes.data.splice(this.liste[0], 1);
             }
+           
             // Si il n'y a plus de question on passe au résultat
             if (this.copthemes.data.length == 0){
                 this.fin = new Date();
@@ -238,8 +280,8 @@ var app = new Vue({
         },
         update_chrono: function(){
             if (this.tempstot == 0 && this.mn == 0) {
-                this.sp[0].innerHTML = "Délai écoulé pour le bonus temps..";
-                this.sp[1].innerHTML="";
+                //this.sp[0].innerHTML = "Délai écoulé pour le bonus temps..";
+                //this.sp[1].innerHTML="";
                 clearInterval(this.interval);
             }else{
                 this.tempstot = this.tempstot - 1;
@@ -247,8 +289,8 @@ var app = new Vue({
                     this.tempstot=60;
                     this.mn = this.mn - 1;
                 }
-                this.sp[0].innerHTML="Temps restant pour obtenir le bonus temps à cette question : "+this.mn+" min";
-                this.sp[1].innerHTML=this.tempstot+" s";
+                //this.sp[0].innerHTML="Temps restant pour obtenir le bonus temps à cette question : "+this.mn+" min";
+                //this.sp[1].innerHTML=this.tempstot+" s";
             }
         },
         startInterval: function () {
@@ -292,25 +334,39 @@ var app = new Vue({
                 this.bonusTemps += 1;
             }
 
+            if(bonneRep){
+                $(".progress" + this.i).progressbar({}).css({"background-color": "green"});
+                
+            }else{
+                $(".progress" + this.i).progressbar({}).css({"background-color": "red"});
+            }
+            this.i++;
+
 
         },
         bonusqcm : function(){
             // On regarde si les cases cochées sont les bonnes
             var bonneRepConsecutive = true;
+            var repFausses = 0;
+            var repVrai = 0;
             for (let index = 0; index < this.copthemes.data[this.liste[0]].answers.length; index++) {
                 if (this.copthemes.data[this.liste[0]].answers[index].correct){
                     if ($('#rep'+index).is(':checked')){
                         this.nbRepVrai++;
+                        repVrai++;
                     }else{
                         bonneRepConsecutive = false;
                         this.nbRepFausses++;
+                        repFausses++;
                     }
                 }else{
                     if ($('#rep'+index).is(':checked')) {
                         bonneRepConsecutive = false;
                         this.nbRepFausses++;
+                        repFausses++;
                     }else{
                         this.nbRepVrai++;
+                        
                     }
                 }
             }
@@ -318,6 +374,17 @@ var app = new Vue({
              if (this.tempstot > 0 && bonneRepConsecutive) {
                 this.bonusTemps += 1;
             }
+            
+            if(bonneRepConsecutive){
+                $(".progress" + this.i).progressbar({}).css({"background-color": "green"});
+                
+            }else{
+                $(".progress" + this.i).progressbar({}).css({"background-color": "red"});
+            }
+            if(repFausses>0 && repVrai>0){
+                $(".progress" + this.i).progressbar({}).css({"background-color": "orange"});
+            }
+            this.i++;
         }   
     }  
 })
