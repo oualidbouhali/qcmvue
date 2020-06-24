@@ -9,19 +9,21 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
         <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        
     </head>
     <body>
         <div id="app" onload="demarrage()">
             <nav class="navbar navbar-inverse navbar-fixed-top" style="margin-bottom:0">
-                <a class="navbar-brand" v-show="jeu == true">
-                    <div class="chronometre">
-                        <div class="tim">
-                            <i class="fa fa-hourglass-half"></i>
-                            <span class="ChronoBonusTemps"></span>
-                            <span class="ChronoBonusTemps"></span>
-                            <i class="fa fa-hourglass-half"></i>
-                        </div>
-                    </div>
+                <a class="navbar-brand" v-show="acc == false">
+                    <!--<div class="chronometre">
+                        <i class="fa fa-hourglass-half"></i>
+                        <span class="ChronoBonusTemps"></span>
+                        <span class="ChronoBonusTemps"></span>
+                        <i class="fa fa-hourglass-half"></i>
+                    </div>-->
+                    <div class="progressContainer"></div>
+
                 </a>
                 <div class="navbar-header">
                     <div class="btn-group"> <!-- bouton thèmes -->
@@ -159,6 +161,7 @@
         <script type="text/javascript"
         src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML">
         </script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
         <script type="text/x-mathjax-config">
             MathJax.Hub.Config({
                 tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
