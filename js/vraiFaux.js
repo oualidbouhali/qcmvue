@@ -44,6 +44,7 @@ var app = new Vue({
         combovf : 0,
         combomax:0,
         isvf : false,
+        comboactu : 0,
 
 
         // Progress bar
@@ -224,6 +225,7 @@ var app = new Vue({
             this.combovf = 0;
             this.combomax = 0;
             this.i=0;
+            this.comboactu=0;
         },
         redemarrerTheme: function(){
             app.choisirTheme(this.themechoix);
@@ -309,21 +311,28 @@ var app = new Vue({
                     if ($('#rep'+index).is(':checked')){
                         this.nbRepVrai++;
                         if(nbRepCheck == 1){
-                            this.combovf++;
-                        }
-                        if(this.combovf > this.combomax){
-                            this.combomax = this.combovf;
+                            this.comboactu++;
                         }
                     }else{
                         bonneRep = false;
                         this.nbRepFausses++;
-                        this.combovf = 0;
+                        if (this.comboactu > 1) {
+                            for (let index = 0; index < this.comboactu; index++) {
+                                this.combovf+= index+1;
+                            }
+                        }
+                        this.comboactu = 0;
                     }
                 }else{
                     if ($('#rep'+index).is(':checked')) {
                         bonneRep = false;
                         this.nbRepFausses++;
-                        this.combovf = 0;
+                        if (this.comboactu > 1) {
+                            for (let index = 0; index < this.comboactu; index++) {
+                                this.combovf+= index+1;
+                            }
+                        }
+                        this.comboactu = 0;
                     }else{
                         this.nbRepVrai++;
                     }
@@ -341,8 +350,12 @@ var app = new Vue({
                 $(".progress" + this.i).progressbar({}).css({"background-color": "red"});
             }
             this.i++;
-
-
+            if (this.copthemes.data.length == 1 && this.comboactu > 1) {
+                for (let index = 0; index < this.comboactu; index++) {
+                    this.combovf+= index+1;
+                }
+            }
+            console.log(this.comboactu, this.combovf);
         },
         bonusqcm : function(){
             // On regarde si les cases cochées sont les bonnes
